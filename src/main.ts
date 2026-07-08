@@ -14,6 +14,7 @@ import fontUrl from './assets/font.ttf';
 import lifeIconUrl from './assets/life.svg';
 
 import { initUI, isSettingsOpen } from './ui';
+import { playSound } from './sound';
 
 /************************************************************************/
 /* Math Utility                                                         */
@@ -247,6 +248,7 @@ class Launcher {
         fire.model.rotate(dir);
         shoot = false;
         ++this.actives;
+        playSound('shooting');
       }
       if (fire.active) {
         const progress = (elapsed - fire.time) / FIRESPEED;
@@ -894,6 +896,7 @@ class ThorJanitor {
   }
 
   dead(elapsed: number): void {
+    playSound('dead');
     this.gameplay = false;
     for (const e of this.enemies) {
       this.destroyEnemy(e, this.player.direction, elapsed);
@@ -988,6 +991,7 @@ class ThorJanitor {
         const ret = e.update(elapsed, this.player.launcher, p2o, target);
         if (ret) {
           if (ret === 2) {  //hit by missile
+            playSound('hurt');
             this.wipesCnt += this.combo.trigger(e.type, target, elapsed);
             this.updatedWipes = true;
             this.destroyEnemy(e, this.player.direction, elapsed);
