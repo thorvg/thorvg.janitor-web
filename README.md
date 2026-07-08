@@ -1,10 +1,10 @@
 # Thor Janitor Web
 
+<p align="center">
+  <img width="600" height="auto" src="https://github.com/thorvg/thorvg.janitor/blob/main/title.png">
+</p>
+
 Web port of [thorvg.janitor](https://github.com/thorvg/thorvg.janitor), running on the [@thorvg/webcanvas](https://www.npmjs.com/package/@thorvg/webcanvas).
-
-
-
-**"Clean the Galaxy, One Sweep at a Time!"**
 
 ## Development
 
