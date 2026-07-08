@@ -763,6 +763,7 @@ class ThorJanitor {
 
   respawnTime = 1000 - LEVEL * RESPAWN_LEVEL;
   wipesCnt = LEVEL * 100;
+  started = false;
   gameplay = true;
   updatedWipes = true;
   fps = 0;
@@ -951,8 +952,25 @@ class ThorJanitor {
     this.combo.type = -1;
   }
 
+  start(elapsed: number): void {
+    this.started = true;
+    this.tick.respawn = elapsed;
+    this.tick.last = elapsed;
+  }
+
   update(elapsed: number): void {
     const shift = sub(this.origin, sub(this.player.pos, this.origin));
+
+    if (!this.started) {
+      this.player.update(elapsed, shift);
+      this.zone.update(shift);
+      this.clipper.translate(shift.x, shift.y);
+      const idle = sub(this.origin, this.player.pos);
+      this.elayer.translate(idle.x, idle.y);
+      canvas.update();
+      this.tick.last = elapsed;
+      return;
+    }
 
     if (this.gameplay) {
       this.input(elapsed);
@@ -1085,10 +1103,25 @@ async function main(): Promise<void> {
 
   initUI(renderer, TVG.version);
 
+  const begin = performance.now();
+
+  //start screen: begin on the button or the space key
+  const startOverlay = document.getElementById('start-overlay')!;
+  const startGame = (): void => {
+    if (game.started) return;
+    startOverlay.hidden = true;
+    game.start(Math.floor(performance.now() - begin));
+  };
+  document.getElementById('start-btn')!.addEventListener('click', startGame);
+
   //keyboard input
   window.addEventListener('keydown', (e) => {
     if (isSettingsOpen()) return;
     if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
+    if (!game.started) {
+      if (e.code === 'Space') startGame();
+      return;
+    }
     game.keystate[e.code] = true;
   });
   window.addEventListener('keyup', (e) => {
@@ -1099,7 +1132,6 @@ async function main(): Promise<void> {
   });
 
   //game loop
-  const begin = performance.now();
   let frames = 0;
   let fpsTime = 0;
 

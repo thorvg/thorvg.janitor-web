@@ -48,6 +48,56 @@
       background: rgba(170, 255, 80, 0.12);
       color: rgba(170, 255, 80, 1);
     }
+    #start-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      z-index: 5;
+      user-select: none;
+      pointer-events: none;
+    }
+    #start-overlay button {
+      pointer-events: auto;
+    }
+    #start-overlay[hidden] {
+      display: none;
+    }
+    #start-overlay h1 {
+      margin: 0;
+      font-size: 42px;
+      letter-spacing: 0.12em;
+      color: #aaff50;
+      text-shadow: 0 0 24px rgba(170, 255, 80, 0.6);
+    }
+    #start-btn {
+      background: transparent;
+      border: 1px solid rgba(170, 255, 80, 0.6);
+      border-radius: 6px;
+      color: #aaff50;
+      font-family: monospace;
+      font-size: 18px;
+      letter-spacing: 0.15em;
+      padding: 12px 36px;
+      cursor: pointer;
+    }
+    #start-btn:hover {
+      background: rgba(170, 255, 80, 0.15);
+      box-shadow: 0 0 24px rgba(170, 255, 80, 0.3);
+    }
+    #start-hint {
+      margin: 0;
+      font-size: 13px;
+      color: rgba(170, 255, 80, 0.6);
+      animation: start-hint-blink 1.4s step-end infinite;
+    }
+    @keyframes start-hint-blink {
+      50% { opacity: 0.25; }
+    }
     #modal-overlay {
       position: fixed;
       inset: 0;
@@ -164,6 +214,12 @@
 </head>
 <body>
   <canvas id="canvas"></canvas>
+
+  <div id="start-overlay">
+    <h1>THOR JANITOR</h1>
+    <button id="start-btn">START</button>
+    <p id="start-hint">press SPACE to start</p>
+  </div>
 
   <div id="hud">
     <span>ARROW KEYS: move &nbsp;|&nbsp; A: shoot</span>
