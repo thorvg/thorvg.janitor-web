@@ -1,5 +1,6 @@
-import ThorVG from '@thorvg/webcanvas';
+import ThorVG, { ThorVGError, ThorVGResultCode } from '@thorvg/webcanvas';
 import type {
+  Animation,
   Canvas,
   Paint,
   Scene,
@@ -12,6 +13,7 @@ import type {
 import wasmUrl from '../node_modules/@thorvg/webcanvas/dist/thorvg.wasm?url';
 import fontUrl from './assets/font.ttf';
 import lifeIconUrl from './assets/life.svg';
+import spaceshipUrl from './assets/spaceship.json?url';
 
 import { initUI, isSettingsOpen } from './ui';
 import { playSound } from './sound';
@@ -40,6 +42,12 @@ function extend(p: Point, len: number): void {
   p.y *= len / mag;
 }
 
+function progress(elapsed: number, durationInSec: number): number {
+  const duration = Math.floor(durationInSec * 1000); //sec -> millisec.
+  if (elapsed === 0 || duration === 0) return 0.0;
+  return (elapsed % duration) / duration;
+}
+
 /************************************************************************/
 /* Core Game Logic                                                      */
 /************************************************************************/
@@ -62,6 +70,7 @@ let canvas: Canvas;
 interface GameAssets {
   font: Uint8Array;
   lifeIcon: string;
+  spaceship: string;
 }
 
 /************************************************************************/
@@ -276,35 +285,28 @@ class Player {
   speed = 0.7;
   shoot = false;
   bound = 0;
-  model!: Scene;
+  forwarded = false;
+  model!: Animation;
+  animFrames = 0;
+  animDuration = 0;
 
-  init(pos: Point, clipper: Paint): void {
+  init(pos: Point, clipper: Paint, spaceship: string): void {
     this.bound = _S(40.0);
 
     this.launcher.init(this.bound * 3, clipper);
 
-    const pts: ReadonlyArray<readonly [number, number]> = [
-      [0, -15], [7, 0], [25, -7], [40, -30], [30, 10], [0, 30], [-30, 10], [-40, -30], [-25, -7], [-7, 0],
-    ];
+    this.model = new TVG.Animation();
+    this.model.load(spaceship);
 
-    const light = new TVG.Shape();
-    light.appendCircle(0, 0, 95, 95);
-    light.fill(255, 255, 255, 17);
+    const info = this.model.info();
+    this.animFrames = info?.totalFrames ?? 0;
+    this.animDuration = info?.duration ?? 0;
 
-    const shape = new TVG.Shape();
-    shape.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length; ++i) shape.lineTo(pts[i][0], pts[i][1]);
-    shape.close();
-    shape.fill(255, 255, 255, 127);
-    shape.stroke({ width: 8.0, color: [200, 200, 255, 255] });
-
-    this.model = new TVG.Scene();
-    this.model.add(light);
-    this.model.add(shape);
-
-    this.model.translate(pos.x, pos.y);
-    this.model.scale(SCALE);
-    canvas.add(this.model);
+    const pic = this.model.picture!;
+    pic.origin(0.5, 0.5);
+    pic.scale(0.35);
+    pic.translate(pos.x, pos.y);
+    canvas.add(pic);
 
     this.pos = { x: pos.x, y: pos.y };
   }
@@ -330,6 +332,7 @@ class Player {
     }
 
     zone.shift(this.pos);
+    this.forwarded = true;
   }
 
   left(multiplier: number): void {
@@ -345,10 +348,16 @@ class Player {
     this.direction = { x: Math.sin(radian), y: -Math.cos(radian) };
 
     this.launcher.update(this.pos, this.direction, this.dir, elapsed, shift, this.shoot);
-    this.model.resetEffects();
-    this.model.dropShadow(200, 200, 255, 255, this.dir + 180.0, _S(20.0), _S(30), 30);
-    this.model.rotate(this.dir);
-    this.model.translate(this.pos.x, this.pos.y);
+
+    // trigger the animation only while the spaceship is moving
+    const frame = this.forwarded ? this.animFrames * progress(elapsed, this.animDuration) : 0.0;
+    this.model.frame(frame);
+
+    const pic = this.model.picture!;
+    pic.rotate(this.dir);
+    pic.translate(this.pos.x, this.pos.y);
+
+    this.forwarded = false;
   }
 }
 
@@ -784,7 +793,7 @@ class ThorJanitor {
     this.clipper.appendRect(this.zone.min.x, this.zone.min.y, this.zone.w() + 10, this.zone.h() + 10);
     this.clipper.scale(SCALE);
 
-    this.player.init({ x: SWIDTH * 0.5, y: SHEIGHT * 0.5 }, this.clipper.duplicate());
+    this.player.init({ x: SWIDTH * 0.5, y: SHEIGHT * 0.5 }, this.clipper.duplicate(), assets.spaceship);
 
     this.elayer = new TVG.Scene();
     this.elayer.clip(this.clipper);
@@ -922,7 +931,7 @@ class ThorJanitor {
       fire.inactivate();
     }
 
-    this.player.model.visible(false);
+    this.player.model.picture!.visible(false);
     this.tick.end = elapsed;
   }
 
@@ -949,7 +958,7 @@ class ThorJanitor {
       this.gui.lv.text(`Level ${LEVEL + 1}`);
     }
 
-    this.player.model.visible(true);
+    this.player.model.picture!.visible(true);
     this.gameplay = true;
     this.tick.end = elapsed;
     this.combo.type = -1;
@@ -1083,14 +1092,19 @@ async function main(): Promise<void> {
   SWIDTH = Math.floor(WIDTH * SCALE);
   SHEIGHT = Math.floor(HEIGHT * SCALE);
 
-  const [fontBuf, lifeIcon] = await Promise.all([
+  const [fontBuf, lifeIcon, spaceship] = await Promise.all([
     fetch(fontUrl).then((r) => r.arrayBuffer()),
     fetch(lifeIconUrl).then((r) => r.text()),
+    fetch(spaceshipUrl).then((r) => r.text()),
   ]);
 
   TVG = await ThorVG.init({
     locateFile: () => wasmUrl,
     renderer,
+    onError: (error) => {
+      if (error instanceof ThorVGError && error.code === ThorVGResultCode.InsufficientCondition) return;
+      console.error(error);
+    },
   });
 
   const el = document.getElementById('canvas') as HTMLCanvasElement;
@@ -1102,6 +1116,7 @@ async function main(): Promise<void> {
   game.content({
     font: new Uint8Array(fontBuf),
     lifeIcon,
+    spaceship,
   });
 
   initUI(renderer, TVG.version);
