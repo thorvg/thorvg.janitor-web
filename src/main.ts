@@ -391,6 +391,9 @@ abstract class Enemy {
       this.pos.to = { x: SWIDTH + B, y: randInt(SHEIGHT) };
     }
 
+    //reset cur to the spawn point
+    this.pos.cur = { x: this.pos.from.x, y: this.pos.from.y };
+
     this.time = { at: elapsed, duration: ENEMY_BASETIME + randInt(Enemy.DURATION) };
     this.dir = { from: randInt(360), to: randInt(360 * ENEMY_MAX_ROTATION) };
     this.model.rotate(this.dir.from);
