@@ -23,22 +23,14 @@ Switch renderer with a URL param:
 - WebGL: `?renderer=gl` (default)
 - WebGPU: `?renderer=wg`
 
-
-
 ## Controls
 
 - **Arrow Keys**: Movement
 - **A**: Shoot
 
-
-
 ## Credits
 
-- [https://github.com/thorvg/thorvg.janitor](https://github.com/thorvg/thorvg.janitor)
-
-
-
-## Authors
-
-- **[Jinny You](https://github.com/tinyjin)**
-
+- **Original Project:** [ThorVG Janitor](https://github.com/thorvg/thorvg.janitor)
+- **Programming:** [LottieFiles](https://lottiefiles.com/) ([Jinny You](https://github.com/tinyjin))
+- **Spaceship Design:** [LottieFiles](https://lottiefiles.com/) (Lana Nguyen, Mau Ali)
+- **Sound Effects:** [Leszek_Szary](https://pixabay.com/users/freesound_community-46691455/)
