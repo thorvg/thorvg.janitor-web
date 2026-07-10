@@ -1,4 +1,4 @@
-import ThorVG, { ThorVGError, ThorVGResultCode } from '@thorvg/webcanvas';
+import ThorVG, { ThorVGResultCode } from '@thorvg/webcanvas';
 import type {
   Animation,
   Canvas,
@@ -1087,6 +1087,7 @@ class ThorJanitor {
 async function main(): Promise<void> {
   const params = new URLSearchParams(location.search);
   const renderer = (params.get('renderer') || 'gl') as RendererType;
+  const threadCount = Math.max(0, Number(params.get('threads')) || 0);
 
   SCALE = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
   SWIDTH = Math.floor(WIDTH * SCALE);
@@ -1098,14 +1099,28 @@ async function main(): Promise<void> {
     fetch(spaceshipUrl).then((r) => r.text()),
   ]);
 
-  TVG = await ThorVG.init({
-    locateFile: () => wasmUrl,
-    renderer,
-    onError: (error) => {
-      if (error instanceof ThorVGError && error.code === ThorVGResultCode.InsufficientCondition) return;
-      console.error(error);
-    },
-  });
+  const onError = (error: Error): void => {
+    const code = (error as { code?: number }).code;
+    if (error.name === 'ThorVGError' && code === ThorVGResultCode.InsufficientCondition) return;
+    console.error(error);
+  };
+
+  if (threadCount > 0) {
+    const base = `${import.meta.env.BASE_URL}thorvg-thread/`;
+    const mod = await import(/* @vite-ignore */ `${base}webcanvas.esm.js`);
+    TVG = await mod.default.init({
+      locateFile: (path: string) => `${base}${path}`,
+      renderer,
+      threads: threadCount,
+      onError,
+    });
+  } else {
+    TVG = await ThorVG.init({
+      locateFile: () => wasmUrl,
+      renderer,
+      onError,
+    });
+  }
 
   const el = document.getElementById('canvas') as HTMLCanvasElement;
   el.style.width = `${SWIDTH}px`;
@@ -1119,7 +1134,7 @@ async function main(): Promise<void> {
     spaceship,
   });
 
-  initUI(renderer, TVG.version);
+  initUI(renderer, TVG.version, threadCount);
 
   const begin = performance.now();
 

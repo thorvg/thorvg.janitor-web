@@ -23,6 +23,20 @@ Switch renderer with a URL param:
 - WebGL: `?renderer=gl` (default)
 - WebGPU: `?renderer=wg`
 
+Enable multithreaded rendering (4 worker threads):
+
+- `?threads=4`
+
+## Deployment
+
+The multithreaded build uses `SharedArrayBuffer`/pthreads, which browsers only
+expose to [cross-origin-isolated](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated) pages. The host must send these response headers on every document:
+
+```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
+
 ## Controls
 
 - **Arrow Keys**: Movement

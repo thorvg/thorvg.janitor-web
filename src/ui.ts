@@ -6,13 +6,16 @@ const RENDERERS = [
   { value: 'wg', label: 'WebGPU' },
 ] as const;
 
+// Worker thread count used when multithreading is enabled.
+export const THREAD_COUNT = 4;
+
 let modalOpen = false;
 
 export function isSettingsOpen(): boolean {
   return modalOpen;
 }
 
-export function initUI(renderer: string, engineVersion: string): void {
+export function initUI(renderer: string, engineVersion: string, threads: number): void {
   const overlay = document.getElementById('modal-overlay')!;
   const btn = document.getElementById('settings-btn') as HTMLButtonElement;
   const closeBtn = document.getElementById('modal-close') as HTMLButtonElement;
@@ -60,6 +63,32 @@ export function initUI(renderer: string, engineVersion: string): void {
     options.append(label);
   }
 
+  //multithreading toggle — switching reloads with the URL param
+  const threadOn = threads > 0;
+  const threadOptions = document.getElementById('thread-options')!;
+  const THREAD_CHOICES = [
+    { on: false, label: 'Off' },
+    { on: true, label: `On (${THREAD_COUNT})` },
+  ];
+  for (const choice of THREAD_CHOICES) {
+    const label = document.createElement('label');
+    if (choice.on === threadOn) label.classList.add('active');
+
+    const input = document.createElement('input');
+    input.type = 'radio';
+    input.name = 'threads';
+    input.checked = choice.on === threadOn;
+    input.addEventListener('change', () => {
+      const url = new URL(location.href);
+      if (choice.on) url.searchParams.set('threads', String(THREAD_COUNT));
+      else url.searchParams.delete('threads');
+      location.href = url.href;
+    });
+
+    label.append(input, choice.label);
+    threadOptions.append(label);
+  }
+
   //versions
   document.getElementById('ver-pkg')!.textContent = pkg.version;
   document.getElementById('ver-engine')!.textContent = engineVersion;
@@ -67,6 +96,7 @@ export function initUI(renderer: string, engineVersion: string): void {
   //embed snippet
   const embedUrl = new URL(location.pathname, location.origin);
   embedUrl.searchParams.set('renderer', renderer);
+  if (threadOn) embedUrl.searchParams.set('threads', String(THREAD_COUNT));
   const snippet = [
     `<iframe src="${embedUrl.href}"`,
     '  width="960" height="540"',
