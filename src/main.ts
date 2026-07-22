@@ -1126,7 +1126,11 @@ async function main(): Promise<void> {
   const el = document.getElementById('canvas') as HTMLCanvasElement;
   el.style.width = `${SWIDTH}px`;
   el.style.height = `${SHEIGHT}px`;
-  canvas = new TVG.Canvas('#canvas', { width: SWIDTH, height: SHEIGHT });
+  canvas = new TVG.Canvas('#canvas', {
+    width: SWIDTH,
+    height: SHEIGHT,
+    engineOption: TVG.EngineOption.None,
+  });
 
   const game = new ThorJanitor();
   game.content({
