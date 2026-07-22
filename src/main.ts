@@ -1100,6 +1100,7 @@ async function main(): Promise<void> {
   const renderer = (params.get('renderer') || 'sw') as RendererType;
   const threadsParam = params.get('threads');
   const threadCount = threadsParam === null ? 4 : Math.max(0, Number(threadsParam) || 0);
+  const dprParam = params.get('dpr');
 
   SCALE = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
   SWIDTH = Math.floor(WIDTH * SCALE);
@@ -1135,6 +1136,12 @@ async function main(): Promise<void> {
     });
   }
 
+  const dprFactor = dprParam !== null && dprParam !== 'off' ? Number(dprParam) : NaN;
+  if (dprFactor > 0) {
+    (TVG.Canvas.prototype as unknown as { _calculateDPR(): number })._calculateDPR = () =>
+      dprFactor * window.devicePixelRatio;
+  }
+
   const el = document.getElementById('canvas') as HTMLCanvasElement;
   el.style.width = `${SWIDTH}px`;
   el.style.height = `${SHEIGHT}px`;
@@ -1142,6 +1149,7 @@ async function main(): Promise<void> {
     width: SWIDTH,
     height: SHEIGHT,
     engineOption: TVG.EngineOption.None,
+    enableDevicePixelRatio: dprParam !== 'off',
   });
 
   const game = new ThorJanitor();
