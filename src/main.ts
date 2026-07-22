@@ -780,6 +780,9 @@ class ThorJanitor {
   updatedWipes = true;
   fps = 0;
 
+  //returns to the ready overlay
+  onGameOver: (() => void) | null = null;
+
   keystate: Record<string, boolean> = {};
 
   content(assets: GameAssets): void {
@@ -956,6 +959,14 @@ class ThorJanitor {
       }
 
       this.gui.lv.text(`Level ${LEVEL + 1}`);
+
+      //game over
+      this.player.model.picture!.visible(true);
+      this.gameplay = true;
+      this.combo.type = -1;
+      this.started = false;
+      this.onGameOver?.();
+      return;
     }
 
     this.player.model.picture!.visible(true);
@@ -1152,6 +1163,10 @@ async function main(): Promise<void> {
     game.start(Math.floor(performance.now() - begin));
   };
   document.getElementById('start-btn')!.addEventListener('click', startGame);
+
+  game.onGameOver = (): void => {
+    startOverlay.hidden = false;
+  };
 
   //keyboard input
   window.addEventListener('keydown', (e) => {
