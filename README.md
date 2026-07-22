@@ -23,10 +23,24 @@ Switch renderer with a URL param:
 - WebGL: `?renderer=gl` (default)
 - WebGPU: `?renderer=wg`
 
+Enable multithreaded rendering:
+
+- 4 threads: `?threads=4`
+
 ## Controls
 
 - **Arrow Keys**: Movement
 - **A**: Shoot
+
+
+## Deployment
+
+The multithreaded build uses `SharedArrayBuffer`, page requires to expose [cross-origin-isolated](https://developer.mozilla.org/en-US/docs/Web/API/Window/crossOriginIsolated).:
+
+```
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Embedder-Policy: require-corp
+```
 
 ## Credits
 
