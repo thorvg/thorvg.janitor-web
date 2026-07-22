@@ -304,7 +304,7 @@ class Player {
 
     const pic = this.model.picture!;
     pic.origin(0.5, 0.5);
-    pic.scale(0.35);
+    pic.scale(_S(0.35 / 0.5333333333333));
     pic.translate(pos.x, pos.y);
     canvas.add(pic);
 
