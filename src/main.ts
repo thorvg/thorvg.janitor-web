@@ -1086,8 +1086,9 @@ class ThorJanitor {
 
 async function main(): Promise<void> {
   const params = new URLSearchParams(location.search);
-  const renderer = (params.get('renderer') || 'gl') as RendererType;
-  const threadCount = Math.max(0, Number(params.get('threads')) || 0);
+  const renderer = (params.get('renderer') || 'sw') as RendererType;
+  const threadsParam = params.get('threads');
+  const threadCount = threadsParam === null ? 4 : Math.max(0, Number(threadsParam) || 0);
 
   SCALE = Math.min(window.innerWidth / WIDTH, window.innerHeight / HEIGHT);
   SWIDTH = Math.floor(WIDTH * SCALE);

@@ -80,8 +80,7 @@ export function initUI(renderer: string, engineVersion: string, threads: number)
     input.checked = choice.on === threadOn;
     input.addEventListener('change', () => {
       const url = new URL(location.href);
-      if (choice.on) url.searchParams.set('threads', String(THREAD_COUNT));
-      else url.searchParams.delete('threads');
+      url.searchParams.set('threads', String(choice.on ? THREAD_COUNT : 0));
       location.href = url.href;
     });
 
@@ -96,7 +95,7 @@ export function initUI(renderer: string, engineVersion: string, threads: number)
   //embed snippet
   const embedUrl = new URL(location.pathname, location.origin);
   embedUrl.searchParams.set('renderer', renderer);
-  if (threadOn) embedUrl.searchParams.set('threads', String(THREAD_COUNT));
+  embedUrl.searchParams.set('threads', String(threadOn ? THREAD_COUNT : 0));
   const snippet = [
     `<iframe src="${embedUrl.href}"`,
     '  width="960" height="540"',
