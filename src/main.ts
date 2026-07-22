@@ -1141,6 +1141,7 @@ async function main(): Promise<void> {
   canvas = new TVG.Canvas('#canvas', {
     width: SWIDTH,
     height: SHEIGHT,
+    enableDevicePixelRatio: false,
     engineOption: TVG.EngineOption.None,
   });
 
