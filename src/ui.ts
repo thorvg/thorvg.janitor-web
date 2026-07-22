@@ -1,10 +1,10 @@
 import pkg from '../node_modules/@thorvg/webcanvas/package.json';
 
-const RENDERERS = [
-  { value: 'sw', label: 'Software' },
-  { value: 'gl', label: 'WebGL' },
-  { value: 'wg', label: 'WebGPU' },
-] as const;
+// const RENDERERS = [
+//   { value: 'sw', label: 'Software' },
+//   { value: 'gl', label: 'WebGL' },
+//   { value: 'wg', label: 'WebGPU' },
+// ] as const;
 
 // Worker thread count used when multithreading is enabled.
 export const THREAD_COUNT = 4;
@@ -15,7 +15,7 @@ export function isSettingsOpen(): boolean {
   return modalOpen;
 }
 
-export function initUI(renderer: string, engineVersion: string, threads: number): void {
+export function initUI(_renderer: string, engineVersion: string, _threads: number): void {
   const overlay = document.getElementById('modal-overlay')!;
   const btn = document.getElementById('settings-btn') as HTMLButtonElement;
   const closeBtn = document.getElementById('modal-close') as HTMLButtonElement;
@@ -42,51 +42,51 @@ export function initUI(renderer: string, engineVersion: string, threads: number)
   });
 
   //renderer options — switching reloads with the URL param
-  const options = document.getElementById('renderer-options')!;
-  for (const r of RENDERERS) {
-    if (r.value === 'wg' && !('gpu' in navigator)) continue;
-    const label = document.createElement('label');
-    if (r.value === renderer) label.classList.add('active');
-
-    const input = document.createElement('input');
-    input.type = 'radio';
-    input.name = 'renderer';
-    input.value = r.value;
-    input.checked = r.value === renderer;
-    input.addEventListener('change', () => {
-      const url = new URL(location.href);
-      url.searchParams.set('renderer', r.value);
-      location.href = url.href;
-    });
-
-    label.append(input, r.label);
-    options.append(label);
-  }
+  // const options = document.getElementById('renderer-options')!;
+  // for (const r of RENDERERS) {
+  //   if (r.value === 'wg' && !('gpu' in navigator)) continue;
+  //   const label = document.createElement('label');
+  //   if (r.value === renderer) label.classList.add('active');
+  //
+  //   const input = document.createElement('input');
+  //   input.type = 'radio';
+  //   input.name = 'renderer';
+  //   input.value = r.value;
+  //   input.checked = r.value === renderer;
+  //   input.addEventListener('change', () => {
+  //     const url = new URL(location.href);
+  //     url.searchParams.set('renderer', r.value);
+  //     location.href = url.href;
+  //   });
+  //
+  //   label.append(input, r.label);
+  //   options.append(label);
+  // }
 
   //multithreading toggle — switching reloads with the URL param
-  const threadOn = threads > 0;
-  const threadOptions = document.getElementById('thread-options')!;
-  const THREAD_CHOICES = [
-    { on: false, label: 'Off' },
-    { on: true, label: `On (${THREAD_COUNT})` },
-  ];
-  for (const choice of THREAD_CHOICES) {
-    const label = document.createElement('label');
-    if (choice.on === threadOn) label.classList.add('active');
-
-    const input = document.createElement('input');
-    input.type = 'radio';
-    input.name = 'threads';
-    input.checked = choice.on === threadOn;
-    input.addEventListener('change', () => {
-      const url = new URL(location.href);
-      url.searchParams.set('threads', String(choice.on ? THREAD_COUNT : 0));
-      location.href = url.href;
-    });
-
-    label.append(input, choice.label);
-    threadOptions.append(label);
-  }
+  // const threadOn = threads > 0;
+  // const threadOptions = document.getElementById('thread-options')!;
+  // const THREAD_CHOICES = [
+  //   { on: false, label: 'Off' },
+  //   { on: true, label: `On (${THREAD_COUNT})` },
+  // ];
+  // for (const choice of THREAD_CHOICES) {
+  //   const label = document.createElement('label');
+  //   if (choice.on === threadOn) label.classList.add('active');
+  //
+  //   const input = document.createElement('input');
+  //   input.type = 'radio';
+  //   input.name = 'threads';
+  //   input.checked = choice.on === threadOn;
+  //   input.addEventListener('change', () => {
+  //     const url = new URL(location.href);
+  //     url.searchParams.set('threads', String(choice.on ? THREAD_COUNT : 0));
+  //     location.href = url.href;
+  //   });
+  //
+  //   label.append(input, choice.label);
+  //   threadOptions.append(label);
+  // }
 
   //versions
   document.getElementById('ver-pkg')!.textContent = pkg.version;
@@ -94,8 +94,11 @@ export function initUI(renderer: string, engineVersion: string, threads: number)
 
   //embed snippet
   const embedUrl = new URL(location.pathname, location.origin);
-  embedUrl.searchParams.set('renderer', renderer);
-  embedUrl.searchParams.set('threads', String(threadOn ? THREAD_COUNT : 0));
+  const currentParams = new URLSearchParams(location.search);
+  const rendererParam = currentParams.get('renderer');
+  if (rendererParam) embedUrl.searchParams.set('renderer', rendererParam);
+  const threadsParam = currentParams.get('threads');
+  if (threadsParam !== null) embedUrl.searchParams.set('threads', threadsParam);
   const snippet = [
     `<iframe src="${embedUrl.href}"`,
     '  width="960" height="540"',
