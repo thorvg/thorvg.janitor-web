@@ -171,11 +171,13 @@
       text-transform: uppercase;
       letter-spacing: 0.08em;
     }
-    #renderer-options {
+    #renderer-options,
+    #thread-options {
       display: flex;
       gap: 8px;
     }
-    #renderer-options label {
+    #renderer-options label,
+    #thread-options label {
       flex: 1;
       display: block;
       text-align: center;
@@ -186,12 +188,20 @@
       color: rgba(200, 255, 220, 0.8);
       cursor: pointer;
     }
-    #renderer-options input { display: none; }
-    #renderer-options label:hover { background: rgba(170, 255, 80, 0.08); }
-    #renderer-options label.active {
+    #renderer-options input,
+    #thread-options input { display: none; }
+    #renderer-options label:hover,
+    #thread-options label:hover { background: rgba(170, 255, 80, 0.08); }
+    #renderer-options label.active,
+    #thread-options label.active {
       border-color: #aaff50;
       color: #aaff50;
       background: rgba(170, 255, 80, 0.12);
+    }
+    #thread-hint {
+      margin: 6px 0 0;
+      font-size: 11px;
+      color: rgba(200, 255, 220, 0.5);
     }
     .version-row {
       display: flex;
@@ -255,6 +265,11 @@
       <section>
         <h3>Renderer</h3>
         <div id="renderer-options"></div>
+      </section>
+
+      <section>
+        <h3>Multithreading</h3>
+        <div id="thread-options"></div>
       </section>
 
       <section>
